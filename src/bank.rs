@@ -1,3 +1,4 @@
+use core::fmt;
 use std::collections::HashMap;
 
 pub struct Bank {
@@ -21,15 +22,14 @@ impl Bank {
     }
 }
 
-// Implement `Display` for `MinMax`.
-// impl fmt::Display for Bank {
-//     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-//         let list = self
-//             .map
-//             .iter()
-//             .map(|(id, qty)| format!("{}x {}", qty, id))
-//             .collect();
-//         // Use `self.number` to refer to each positional data point.
-//         write!(f, "{}", list)
-//     }
-// }
+impl fmt::Display for Bank {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let list: Vec<String> = self
+            .map
+            .iter()
+            .map(|(id, qty)| format!("{}x {}", qty, id))
+            .collect();
+
+        write!(f, "{}", list.join(", "))
+    }
+}

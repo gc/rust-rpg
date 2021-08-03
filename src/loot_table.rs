@@ -1,8 +1,6 @@
-use std::thread;
-
+use crate::bank::Bank;
 use rand::Rng;
-
-use crate::bank_module::Bank;
+use rayon::prelude::*;
 
 pub struct LootTableItem {
     pub id: i32,
@@ -20,28 +18,21 @@ impl LootTable {
         self.items.push(LootTableItem { id, weight });
         self
     }
-    pub fn roll_many(&'static mut self, quantity: i32) -> Bank {
-        let quantity_per_thread = quantity / num_cpus::get() as i32;
-        // let leftover = quantity % quantity_per_thread;
-
+    pub fn roll_many(&self, quantity: i32) -> Bank {
         let mut bank = Bank::new();
-        // bank.add
 
-        for _ in 1..=quantity_per_thread {
-            let handle = thread::spawn(move || {
-                for _ in 1..quantity_per_thread {
-                    let loot = &self.roll_single();
-                    if let Some(rolled_item) = loot {
-                        bank.add(rolled_item.id, 1);
-                    }
-                }
-            });
-            handle.join().unwrap();
+        let rolled_items = (0..quantity)
+            .into_par_iter()
+            .filter_map(|_| self.roll_single())
+            .collect::<Vec<_>>();
+
+        for rolled_item in rolled_items {
+            bank.add(rolled_item.id, 1);
         }
 
         bank
     }
-    pub fn roll_single(&mut self) -> Option<&LootTableItem> {
+    pub fn roll_single(&self) -> Option<&LootTableItem> {
         let random_weight = rand::thread_rng().gen_range(1..=self.total_weight);
 
         let mut weight = 0;
